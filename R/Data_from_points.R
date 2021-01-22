@@ -298,6 +298,7 @@ GetClimate_heterogeneity <- function (ranges, res=2.5) { #buffer=100000,
   for(range_index in 1:length(ranges)) {
     cat("\r", "Now doing species number", range_index, "out of", length(ranges))
     points <- as.data.frame(rasterToPoints(ranges[[range_index]])[,1:2])
+    if(nrow(points) > 0 & ncol(points) > 1) {
     sp::coordinates(points) <- ~ x + y
     #circle_around_point <- dismo::circles(points, d=buffer, lonlat=TRUE) # Radius of the circle in meters
     #circle_around_point <- sp::polygons(circle_around_point)
@@ -315,6 +316,7 @@ GetClimate_heterogeneity <- function (ranges, res=2.5) { #buffer=100000,
     results[range_index,7] <- round(sd(seas_temp_values[!is.na(seas_temp_values)]*100000), 2)
     results[range_index,8] <- round(mean(seas_prec_values[!is.na(seas_prec_values)]*100000), 2)
     results[range_index,9] <- round(sd(seas_prec_values[!is.na(seas_prec_values)]*100000), 2)
+    }
   }
   colnames(results) <- c("species", "slope_temp_mean", "slope_temp_sd", "slope_prec_mean","slope_prec_sd","slope_seas_temp_mean","slope_seas_temp_sd","slope_seas_prec_mean","slope_seas_prec_sd")
   # unlink folders with paleoclim layers
@@ -345,22 +347,29 @@ Frost <- function(ranges, res=2.5) {
   for(range_index in 1:length(ranges)) {
     cat("\r", "Now doing species number", range_index, "out of", length(ranges))
     points <- as.data.frame(rasterToPoints(ranges[[range_index]])[,1:2])
-    sp::coordinates(points) <- ~ x + y
-    some_frost_values <- raster::extract(some_but_not_a_lot_of_frost, points)
-    a_lot_of_frost_values <- raster::extract(a_lot_of_frost, points)
-    some_frost_values <- table(some_frost_values)[2]
-    if(is.na(some_frost_values)){
-      some_frost_values <- 0
+    if(nrow(points) > 0 & ncol(points) > 1) {
+      sp::coordinates(points) <- ~ x + y
+      some_frost_values <- raster::extract(some_but_not_a_lot_of_frost, points)
+      a_lot_of_frost_values <- raster::extract(a_lot_of_frost, points)
+      some_frost_values <- table(some_frost_values)
+
+      if(any(names(some_frost_values) == 1)){
+        some_frost_values <- some_frost_values[which(names(some_frost_values) == 1)]
+      } else {
+        some_frost_values <- 0 }
+
+      a_lot_of_frost_values <- table(a_lot_of_frost_values)
+      if(any(names(a_lot_of_frost_values) == 0)){
+        a_lot_of_frost_values <- a_lot_of_frost_values[which(names(a_lot_of_frost_values) == 0)]
+      } else {
+        a_lot_of_frost_values <- 0 }
+
+      proportion_some_frost <- some_frost_values / length(points)
+      proportion_a_lot_of_frost <- a_lot_of_frost_values / length(points)
+      results[range_index,1] <- names(ranges)[range_index]
+      results[range_index,2] <- round(proportion_some_frost, 2)
+      results[range_index,3] <- round(proportion_a_lot_of_frost, 2)
     }
-    a_lot_of_frost_values <- table(a_lot_of_frost_values)[1]
-    if(is.na(a_lot_of_frost_values)){
-      a_lot_of_frost_values <- 0
-    }
-    proportion_some_frost <- some_frost_values / length(points)
-    proportion_a_lot_of_frost <- a_lot_of_frost_values / length(points)
-    results[range_index,1] <- names(ranges)[range_index]
-    results[range_index,2] <- round(proportion_some_frost, 2)
-    results[range_index,3] <- round(proportion_a_lot_of_frost, 2)
   }
   colnames(results) <- c("species", "some_frost", "a_lot_of_frost")
   # unlink folders with paleoclim layers
@@ -369,4 +378,5 @@ Frost <- function(ranges, res=2.5) {
   try(unlink("./wc10", recursive = TRUE))
   return(results)
 }
+
 
