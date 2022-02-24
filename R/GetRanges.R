@@ -16,14 +16,19 @@ GetRanges <- function(points, species="species", lat="decimalLatitude", lon="dec
   list_of_ranges <- list()
   for(species_index in 1:length(spp)) {
     points_for_range <- tmp_points[tmp_points$species==spp[species_index],]
-    tmp_list <- GetOneRange(points_for_range, threshold, buffer, res)
-    list_of_ranges[[species_index]] <- tmp_list
-    names(list_of_ranges)[species_index] <- spp[species_index]
+    tmp_list <- try(GetOneRange(points_for_range, threshold, buffer, res))
+    if(exists("tmp_list")) {
+      list_of_ranges[[species_index]] <- tmp_list
+      names(list_of_ranges)[species_index] <- spp[species_index]
+      rm(tmp_list)
+    } else {
+      next }
     #cat("","\n")
     #cat(species[species_index], "done.")
     #cat("","\n")
     cat("\r", species_index, " out of ",length(spp))
   }
+  
   try(unlink("wc2-5", recursive = TRUE))
   try(unlink("wc5", recursive = TRUE))
   try(unlink("wc10", recursive = TRUE))
