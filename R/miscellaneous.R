@@ -17,6 +17,9 @@ WWFload <- function(x = NULL) {
 
 localityToBiome <- function (points,lat="lat",lon="lon") {
   #colnames(points) <- c("acceptedScientificName","key","decimalLatitude","decimalLongitude","basisOfRecord","issues")
+  cat("Getting biome from locality data...")
+  points[,lat] <-  as.numeric(points[,lat])
+  points[,lon] <-  as.numeric(points[,lon])
   locations.spatial <- sp::SpatialPointsDataFrame(coords=points[,c(lon, lat)], data=points)
   wwf <- WWFload(tempdir())
   mappedregions <- sp::over(locations.spatial, wwf)
@@ -29,6 +32,7 @@ localityToBiome <- function (points,lat="lat",lon="lon") {
 
 # getting biomes for each species
 getBiomes <- function (points, species="species") {
+  cat("Summarizing biome from locality data...")
   points <- as.data.frame(points) # not sure how to do it without transforming back to data.frame
   points <- subset(points, !is.na(points[,"biome"]))
   categories <- unique(points[,"biome"])

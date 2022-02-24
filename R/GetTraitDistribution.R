@@ -40,6 +40,10 @@ GetTraitDistribution <- function (list_of_ranges, trait_data, type=c("binary","c
     stop("Some species in the list_of_ranges are not in the trait_data")
   }
   ranges <- lapply(list_of_ranges, function(x) x$range)
+  xmin <- min(unlist(lapply(lapply(ranges, "extent"), "xmin")))
+  xmax <- max(unlist(lapply(lapply(ranges, "extent"), "xmax")))  
+  ymin <- min(unlist(lapply(lapply(ranges, "extent"), "ymin")))
+  ymax <- max(unlist(lapply(lapply(ranges, "extent"), "ymax")))
   template.map <- readRDS("R/template.map.Rdata")
   #template.map <- raster::getData("worldclim", var="bio", download=TRUE, res=10)[[1]]
   #template.map[!is.na(template.map)] <- 0
@@ -47,6 +51,7 @@ GetTraitDistribution <- function (list_of_ranges, trait_data, type=c("binary","c
     tmp.raster.list_traits <- list()
     tmp.raster.list_sprich <- list()
     for (range_index in 1:length(ranges)) {
+      cat("\r", range_index, " out of ",length(ranges))
       species <- names(ranges)[[range_index]]
       r1 <- ranges[[range_index]]
       r1 <- raster::resample(r1, template.map)
@@ -59,8 +64,9 @@ GetTraitDistribution <- function (list_of_ranges, trait_data, type=c("binary","c
     sp_sum <- raster::calc(raster::stack(tmp.raster.list_sprich), sum)
     result <- r1
     result[!is.na(result)] <- traits_sum / sp_sum
-    return(mask(result, template.map))
-
+    result <- mask(result, template.map)
+    result <- crop(result, extent(xmin,xmax,ymin,ymax) ++ 10)
+    return(result)
   } else if (type=="binary") {
     trait_states_list <- list()
     states <- unique(trait_data[,2])
@@ -88,6 +94,7 @@ GetTraitDistribution <- function (list_of_ranges, trait_data, type=c("binary","c
     proportion_trait2 <- ((trait_states_list[[2]] * 100) / total_sprich) / 100
     final <- c(proportion_trait1, proportion_trait2)
     names(final) <- names(trait_states_list)
+    final <- crop(final, extent(xmin,xmax,ymin,ymax) ++ 10)
     return(final)
   }
 }

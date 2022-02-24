@@ -1,0 +1,91 @@
+---
+title: ""
+author: "Thais Vasconcelos"
+date: "2/24/2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(eval = FALSE)
+# rm(list=ls())
+```
+
+[Testing some functionalities]
+
+## 1. Habitat and environment from localities
+
+Getting some climatic variables and biomes for each point, then summarizing for each species
+
+```{r}
+# Load packages you will need for this workflow:
+library(ape)
+library(maptools)
+library(raster)
+library(phylolm)
+
+# Load function:
+source("R/miscellaneous.R")
+source("R/GetRanges.R")
+source("R/GetTraitDistribution.R")
+
+# Load files you will need for this workflow:
+tree <- read.tree("example_datasets/tree.tre")
+points <- read.csv("example_datasets/points.csv")
+traits <- read.csv("example_datasets/traits.csv")
+```
+
+
+## Gets biomes and ecoregion for each point and summary for each species:
+
+```{r}
+# Gets biomes and eco_region for each point
+all_biomes <- localityToBiome(points)
+summary_biomes <- getBiomes(all_biomes)
+
+```
+
+
+## 2. PGLS
+
+```{r}
+# Get variables from layers
+# Load layer
+layer <- raster("example_datasets/bio12.bil")
+# plot(predictor)
+climate_dataset <- GetClimateSummStats(points, layer)
+
+combined_dataset <- merge(climate_dataset, traits, by="species")
+rownames(combined_dataset) <- combined_dataset$species
+combined_dataset$mean <- as.numeric(combined_dataset$mean)
+
+# pgls?
+
+model <- phylolm(B~mean, data=combined_dataset, tree)
+summary(model)
+plot(combined_dataset$B~combined_dataset$mean)
+abline(model)
+
+```
+
+
+## 3. Ploting maps
+
+Function GetRanges is a wrapper of dismo::maxent to perform sdms in many species.
+
+```{r}
+all_ranges <- GetRanges(points, species="species", lat="lat", lon="lon", threshold=0.75, buffer=25, res=10) 
+
+# merging ranges with trait data
+trait_data <- combined_dataset[,c("species","B")]
+trait_data <- subset(trait_data, !is.na(trait_data$B))
+all_ranges[!names(all_ranges) %in% trait_data$species] <- NULL
+
+traitB_dist <- GetTraitDistribution(all_ranges, trait_data, type=c("continuous")) 
+
+# we can plot
+plot(traitB_dist)
+plot(wrld_simpl, add=T)
+
+```
+
