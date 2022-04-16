@@ -59,7 +59,11 @@ GetOneRange <- function(points_for_range, threshold, buffer, res) {
   predictors <- LoadWcLayers(res.layers=res)
   #cat("Creating background polygon...")
   bg <- BgPolygon(thinned_points)
+<<<<<<< HEAD
   if(nrow(thinned_points) < 3) { # If three or fewer valid points, the range will be retrieved from a circle around these points
+=======
+  if(nrow(thinned_points) < 3) { # If two or fewer valid points, the range will be retrieved from a circle around these points
+>>>>>>> 4857cad455f172baeb912d9fb34a54b7ca0fa1c3
     list_of_model_results <- RangeFromFewPoints(thinned_points, predictors, buffer)
   } else {
     #cat("Removing predictors with colinearity problems ...")
