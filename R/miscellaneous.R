@@ -62,6 +62,15 @@ getBiomes <- function (points, species="species") {
 #' @importFrom sp coordinates
 #' @export
 ClimateFromPoints <- function (points, layer) {
+  if(any(colnames(points) != c("species","lat","lon"))) {
+    stop("Columns have to be in the order of taxon, latitude and longitude and named as 'species', 'lat', and 'lon")
+  }
+  if(ncol(points)!=3) {
+    stop("Dataset should be of class data.frame and organized in three columns named as 'species', 'lat', and 'lon'")   
+  }
+  if(!is.data.frame(points)) {
+    stop("Dataset should be of class data.frame and organized in three columns named as 'species', 'lat', and 'lon'")   
+  }
   cat("Extracting climatic information of", nrow(points), "points",  "\n")
   colnames(points) <- c("species", "lat", "lon")
   sp::coordinates(points) <- ~ lon + lat
