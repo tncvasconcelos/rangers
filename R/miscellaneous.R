@@ -61,17 +61,17 @@ getBiomes <- function (points, species="species") {
 #' @importFrom raster extract getData addLayer
 #' @importFrom sp coordinates
 #' @export
-ClimateFromPoints <- function (points, layer, species="", lat = "lat", lon="lon") {
-  tmp_points = points
-  colnames(tmp_points)[which(colnames(tmp_points) == lon)] <- "lon"
-  colnames(tmp_points)[which(colnames(tmp_points) == lat)] <- "lat"
-  colnames(tmp_points)[which(colnames(tmp_points) == species)] <- "species"
-  tmp_points <- tmp_points[,c("species","lat","lon")]
-  cat("Extracting climatic information of", nrow(tmp_points), "points",  "\n")
-  sp::coordinates(tmp_points) <- ~ lon + lat
-  values <- raster::extract(layer, tmp_points)
-  result <- cbind(tmp_points, values)
-  return(as.data.frame(result))
+ClimateFromPoints <- function (points, layer) {
+  cat("Extracting climatic information of", nrow(points), "points",  "\n")
+  colnames(points) <- c("species", "lat", "lon")
+  sp::coordinates(points) <- ~ lon + lat
+  values <- raster::extract(layer, points)
+  result <- cbind(points, values)
+  out <- as.data.frame(result)
+  if(class(layer@data@names) == "character"){
+    colnames(out)[2] <- layer@data@names
+  }
+  return(out)
 }
 
 #' Thinning distribution data to smooth sampling bias

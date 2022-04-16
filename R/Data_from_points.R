@@ -8,7 +8,7 @@
 #' @importFrom raster extract getData addLayer
 #' @importFrom sp coordinates
 #' @export
-ClimateFromPoints <- function (points, species="", lat = "lat", lon="lon", res=5) {
+ClimateFromPoints.2 <- function (points, species="", lat = "lat", lon="lon", res=5) {
   tmp_points = points
   colnames(tmp_points)[which(colnames(tmp_points) == lon)] <- "lon"
   colnames(tmp_points)[which(colnames(tmp_points) == lat)] <- "lat"
