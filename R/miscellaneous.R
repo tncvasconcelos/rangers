@@ -130,7 +130,7 @@ GetClimateSummStats <- function (points, layer, species="species", lat = "lat", 
   colnames(tmp_points)[which(colnames(tmp_points) == species)] <- "species"
   tmp_points <- tmp_points[,c("species","lon","lat")]
   #cat("Extracting climatic information of", nrow(points), "points",  "\n")
-  spp <- unique(points$species)
+  spp <- unique(tmp_points$species)
   summ_stats <- as.data.frame(matrix(nrow=length(spp), ncol=5))
   for(species_index in 1:length(spp)){
     sp1 <- tmp_points[tmp_points$species==spp[species_index],]

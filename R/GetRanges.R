@@ -8,6 +8,7 @@
 #' @param res The resolution (2.5, 5 or 10) of climatic variables used for modeling
 #' @return A list containing information about the species distribution modeling performance and a raster with the possible range of each species
 #' @export
+#' 
 GetRanges <- function(points, species="species", lat="decimalLatitude", lon="decimalLongitude", threshold=0.75, buffer=25, res=10) {
   tmp_points = as.data.frame(points)
   tmp_points = tmp_points[,c(which(colnames(tmp_points)==species),which(colnames(tmp_points)==lon),which(colnames(tmp_points)==lat))]
@@ -29,9 +30,9 @@ GetRanges <- function(points, species="species", lat="decimalLatitude", lon="dec
     cat("\r", species_index, " out of ",length(spp))
   }
   
-  try(unlink("wc2-5", recursive = TRUE))
-  try(unlink("wc5", recursive = TRUE))
-  try(unlink("wc10", recursive = TRUE))
+  #try(unlink("wc2-5", recursive = TRUE))
+  #try(unlink("wc5", recursive = TRUE))
+  #try(unlink("wc10", recursive = TRUE))
   return(list_of_ranges)
 }
 
@@ -58,7 +59,7 @@ GetOneRange <- function(points_for_range, threshold, buffer, res) {
   predictors <- LoadWcLayers(res.layers=res)
   #cat("Creating background polygon...")
   bg <- BgPolygon(thinned_points)
-  if(nrow(thinned_points) < 4) { # If three or fewer valid points, the range will be retrieved from a circle around these points
+  if(nrow(thinned_points) < 3) { # If three or fewer valid points, the range will be retrieved from a circle around these points
     list_of_model_results <- RangeFromFewPoints(thinned_points, predictors, buffer)
   } else {
     #cat("Removing predictors with colinearity problems ...")
