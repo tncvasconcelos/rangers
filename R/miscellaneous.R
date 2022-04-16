@@ -123,34 +123,53 @@ Thinning <- function(points, species="species", lat = "decimalLatitude", lon="de
 #' @importFrom sp coordinates
 #' @return A list with summaru statistics for the 19 WorldClim variables plut altitude
 #' @export
-GetClimateSummStats <- function (points, layer, species="species", lat = "lat", lon="lon") {
-  tmp_points = points
-  colnames(tmp_points)[which(colnames(tmp_points) == lon)] <- "lon"
-  colnames(tmp_points)[which(colnames(tmp_points) == lat)] <- "lat"
-  colnames(tmp_points)[which(colnames(tmp_points) == species)] <- "species"
-  tmp_points <- tmp_points[,c("species","lon","lat")]
-  #cat("Extracting climatic information of", nrow(points), "points",  "\n")
-  spp <- unique(tmp_points$species)
-  summ_stats <- as.data.frame(matrix(nrow=length(spp), ncol=5))
-  for(species_index in 1:length(spp)){
-    sp1 <- tmp_points[tmp_points$species==spp[species_index],]
-    cat("\r", species_index, "   out of ", length(spp))
-    sp::coordinates(sp1) <- ~ lon + lat
-    values <- raster::extract(layer, sp1)
-    values <- values[!is.na(values)]
-    #if(length(values) > 2) {
-    n0 <- as.numeric(length(values))
-    mean0 <- as.numeric(round(mean(values), 2))
-    sd0 <- as.numeric(round(stats::sd(values), 2))
-    se0 <- as.numeric(round(sd0/ sqrt(n0), 2))
-    tmp_summ_stats <- c(n0, mean0, sd0, se0)
-    #} else {
-    #  tmp_summ_stats <- rep("not_enough_points", 4)
-    #}
-    summ_stats[species_index,] <- c(spp[species_index], tmp_summ_stats)
-    colnames(summ_stats) <- c("species","n", "mean", "sd", "se")
-  }
+# GetClimateSummStats <- function (points, layer, species="species", lat = "lat", lon="lon") {
+#   tmp_points = points
+#   colnames(tmp_points)[which(colnames(tmp_points) == lon)] <- "lon"
+#   colnames(tmp_points)[which(colnames(tmp_points) == lat)] <- "lat"
+#   colnames(tmp_points)[which(colnames(tmp_points) == species)] <- "species"
+#   tmp_points <- tmp_points[,c("species","lon","lat")]
+#   #cat("Extracting climatic information of", nrow(points), "points",  "\n")
+#   spp <- unique(tmp_points$species)
+#   summ_stats <- as.data.frame(matrix(nrow=length(spp), ncol=5))
+#   for(species_index in 1:length(spp)){
+#     sp1 <- tmp_points[tmp_points$species==spp[species_index],]
+#     cat("\r", species_index, "   out of ", length(spp))
+#     sp::coordinates(sp1) <- ~ lon + lat
+#     values <- raster::extract(layer, sp1)
+#     values <- values[!is.na(values)]
+#     #if(length(values) > 2) {
+#     n0 <- as.numeric(length(values))
+#     mean0 <- as.numeric(round(mean(values), 2))
+#     sd0 <- as.numeric(round(stats::sd(values), 2))
+#     se0 <- as.numeric(round(sd0/ sqrt(n0), 2))
+#     tmp_summ_stats <- c(n0, mean0, sd0, se0)
+#     #} else {
+#     #  tmp_summ_stats <- rep("not_enough_points", 4)
+#     #}
+#     summ_stats[species_index,] <- c(spp[species_index], tmp_summ_stats)
+#     colnames(summ_stats) <- c("species","n", "mean", "sd", "se")
+#   }
+#   return(summ_stats)
+# }
+
+GetClimateSummStats <- function(climate_by_point){
+  original_species_order <- unique(climate_by_point[,1])
+  summ_stats <- aggregate(climate_by_point[,2], by = list(climate_by_point[,1]), function(x) BasicSummStats(x))
+  summ_stats <- cbind(summ_stats[,1], as.data.frame(summ_stats[,-1]))
+  colnames(summ_stats) <- c("species", "n", "mean", "sd", "se")
+  summ_stats <- summ_stats[match(original_species_order, summ_stats[,1]),]
+  rownames(summ_stats) <- NULL
   return(summ_stats)
+}
+
+BasicSummStats <- function(x){
+  x <- na.omit(x)
+  out <- c(n = length(x), 
+           mean = mean(x), 
+           sd = sd(x), 
+           se = sd(x)/sqrt(length(x)))
+  return(out)
 }
 
 
