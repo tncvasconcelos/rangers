@@ -50,18 +50,24 @@ getBiomes <- function (points, species="species") {
   return(result)
 }
 
-
-#' Extract climate information from species points.
+#' Extract landscape data from species occurence points.
 #' @description Function to extract climate information from species points.
-#' @param points A data.frame of three columns containing species and coordinates
-#' @param species A character string indicating name of column with species names
-#' @param lat A character string indicating name of column with latitudes
-#' @param lon character string indicating name of column with longitudes
-#' @param res A number (2.5, 5 or 10) indicating resolution of climatic layers from where the climate data is being extracted.
-#' @importFrom raster extract getData addLayer
+#' @param points An object of class data.frame with three columns containing species and coordinates (latitude and longitude) and named as: "species", "lat", "lon" (always in this order).
+#' @param layer An object of class raster layer containing landscape (e.g. climate, soil) information 
+#' @details 
+#' @importFrom raster extract
 #' @importFrom sp coordinates
 #' @export
-ClimateFromPoints <- function (points, layer) {
+DataFromPoints <- function (points, layer) {
+  if(any(colnames(points) != c("species","lat","lon"))) {
+    stop("Columns have to be in the order of taxon, latitude and longitude and named as 'species', 'lat', and 'lon")
+  }
+  if(ncol(points)!=3) {
+    stop("Dataset should be of class data.frame and organized in three columns named as 'species', 'lat', and 'lon'")   
+  }
+  if(!is.data.frame(points)) {
+    stop("Dataset should be of class data.frame and organized in three columns named as 'species', 'lat', and 'lon'")   
+  }
   cat("Extracting climatic information of", nrow(points), "points",  "\n")
   colnames(points) <- c("species", "lat", "lon")
   sp::coordinates(points) <- ~ lon + lat
